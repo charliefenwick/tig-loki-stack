@@ -1,0 +1,103 @@
+version: "3.9"
+
+networks: 
+    tig-net:
+        driver: bridge
+        name: tig-net # Naming avoids the project name prefix
+
+volumes:
+    tig-data:
+        name: tig-data
+
+services:
+    
+    influxdb:
+        image: influxdb:1.8      # 2.x has some changes to be aware of
+        container_name: influxdb # Naming avoids the project name prefix
+        ports:
+            #- 8083:8083 # admin interface ... deprecated and removed in v1.3, for Chronograf
+            - 8086:8086 # API endpoint used by Telegraf
+        environment:
+            INFLUXDB_HTTP_AUTH_ENABLED: "true"
+            INFLUXDB_DB: "test"
+            INFLUXDB_ADMIN_USER: "cisco"
+            INFLUXDB_ADMIN_PASSWORD: "cisco"
+        networks: 
+            - tig-net
+        volumes:
+            - tig-data:/var/lib/influxdb
+
+    grafana:
+        image: grafana/grafana:latest
+        container_name: grafana
+        ports: 
+            - 3000:3000
+        environment:
+            GF_SECURITY_ADMIN_USER: cisco
+            GF_SECURITY_ADMIN_PASSWORD: cisco
+        networks: 
+            - tig-net
+        volumes:
+            - tig-data:/var/lib/grafana
+        restart: always        
+
+    telegraf:
+        image: telegraf:1.19
+        container_name: telegraf
+        depends_on: 
+            - influxdb
+        ports:
+            - 57001:57001
+        environment:
+            HOST_NAME: "telegraf"
+            INFLUXDB_HOST: "influxdb"
+            INFLUXDB_PORT: "8086"
+            DATABASE: "test"
+        volumes:
+            - ./configs/telegraf.conf:/etc/telegraf/telegraf.conf
+        tty: true
+        networks: 
+            - tig-net
+        privileged: true
+
+    syslog-ng:
+        #
+        # Will name resulting built image, coupled with build clause
+        # vs. going out and getting syslog-ng:latest
+        # However, causes problems when you do a pull, need to...
+        # docker compose pull --ignore-pull-failures
+        #
+        # Could use local registry
+        # https://www.docker.com/blog/how-to-use-your-own-registry-2
+        #
+        image: syslog-ng:latest
+        container_name: syslog
+        build:
+            context: .
+            dockerfile: Dockerfile-syslog-ng
+        ports:
+            - 514:514/udp
+        volumes:
+            - ./configs/syslog-ng.conf:/etc/syslog-ng/syslog-ng.conf
+        networks: 
+            - tig-net
+
+    loki:
+        image: grafana/loki:2.4.1
+        container_name: loki
+        #ports:
+        #    - 3100:3100
+        command: -config.file=/etc/loki/local-config.yaml
+        networks:
+            - tig-net
+
+    promtail:
+        image: grafana/promtail:2.4.1
+        container_name: promtail
+        #ports:
+        #    - 1514:1514
+        command: -config.file=/etc/promtail/config.yml
+        volumes:
+            - ./configs/promtail-config.yml:/etc/promtail/config.yml
+        networks:
+            - tig-net

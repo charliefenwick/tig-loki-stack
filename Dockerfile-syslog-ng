@@ -1,0 +1,24 @@
+FROM alpine:latest
+LABEL maintainer="cfenwick@cisco.com"
+
+RUN apk add --update syslog-ng
+
+# RFC 3164 (supported by syslog-ng)
+EXPOSE 514/udp
+
+# Actually registered to Fujitsu
+#EXPOSE 1514/tcp
+
+# RFC 3195 (never really took, may be in rsyslog)
+#EXPOSE 601/tcp  
+
+# RFC 3195 (never really took, may be in rsyslog)
+#EXPOSE 601/udp
+
+# RFC 5425 (syslog over TLS, supported by syslog-ng)
+#EXPOSE 6514/tcp
+
+# RFC 6012 (syslog over DTLS)
+#EXPOSE 6514/udp
+
+CMD ["/usr/sbin/syslog-ng", "-F"]
