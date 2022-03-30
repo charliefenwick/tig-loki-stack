@@ -64,7 +64,7 @@ To get you started, here are some example XR configurations that should work "as
 
 
 
-The following assumes that at least Gig0/0/0/0 is "up/up" and the route to where the containerized TIG stack lives (change as required).  Also, replace `[[ Docker Host]]` with a resolvable name or IP address.
+The following assumes that at least Gig0/0/0/0 is "up/up" and the route to where the containerized TIG stack lives (change as required).  Also, replace `[[ docker-host ]]` with a resolvable name or IP address.
 
 A good explanation of where the TPA (Third-Party App. address) can hang you up is available in Shelly Cadora's article [MDT with gRPC: Transport Tricks](https://xrdocs.io/telemetry/tutorials/2017-05-05-mdt-with-grpc-transport-tricks), found on [XRdocs.io](https://xrdocs.io).  In short, it has to do with the router's gRPC server using the underlying Linux networking stack, therefore a route to the TIG stack has to be available to the Linux kernel. 
 
