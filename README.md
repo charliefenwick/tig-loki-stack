@@ -16,7 +16,6 @@ Assuming some basic knowledge of Docker commands and the use of Docker Compose, 
 
 ```
 .
-├── .gitignore
 ├── Dockerfile-syslog-ng
 ├── LICENSE
 ├── README.md
